@@ -1,0 +1,54 @@
+import cv2
+import numpy as np
+
+
+def nothing(x):
+    pass 
+
+def ganma(x,y):
+    z = 255*(x/255)**y
+    return z
+
+def tonecurve(x,y):
+    z = x*y
+    return z
+
+    
+capture = cv2.VideoCapture(0)
+capture.set(cv2.CAP_PROP_FRAME_WIDTH,  640)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+cv2.namedWindow('im')
+cv2.createTrackbar('filter','im',1,5,nothing)
+cv2.createTrackbar('ganma','im',1,10,nothing)
+cv2.createTrackbar('R','im',1,5,nothing)
+cv2.createTrackbar('G','im',1,5,nothing)
+cv2.createTrackbar('B','im',1,5,nothing)
+
+
+while(True):
+    ret, frame = capture.read()
+    if not ret: continue
+        
+    #ganma
+    c = cv2.getTrackbarPos('ganma','im')
+    frame = ganma(frame,c)
+    
+    #フィルタリング
+    f = cv2.getTrackbarPos('filter','im')
+    frame = cv2.GaussianBlur(frame,(0,0),f)
+    
+    #RGBトーンカーブ
+    r = cv2.getTrackbarPos('R','im')
+    g = cv2.getTrackbarPos('G','im')
+    b = cv2.getTrackbarPos('B','im')
+    frame[:,:,0] = tonecurve(frame[:,:,0],r)
+    frame[:,:,1] = tonecurve(frame[:,:,1],g)
+    frame[:,:,2] = tonecurve(frame[:,:,2],b)
+
+    cv2.imshow('im',frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+capture.release()
+cv2.destroyAllWindows()
